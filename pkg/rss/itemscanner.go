@@ -1,3 +1,4 @@
+// Package rss provides a Scanner-type to parse a podcast RSS feed item by item.
 package rss
 
 import (
@@ -6,10 +7,12 @@ import (
 	"regexp"
 )
 
-type itemScanner struct {
+// itemScanner is a generic wrapper for a *bufio.Scanner
+type itemScanner struct { //TODO get rid of this, the constructor will do.
 	*bufio.Scanner
 }
 
+// newItemScanner returns a new itemScanner
 func newItemScanner(reader io.Reader) *itemScanner {
 	scanner := itemScanner{bufio.NewScanner(reader)}
 	scanner.Split(splitByItem)
@@ -17,6 +20,7 @@ func newItemScanner(reader io.Reader) *itemScanner {
 	return &scanner
 }
 
+// splitByItem is the SplitFunc for the itemScanner type. It parses the RSS feed from <item> to </item>.
 func splitByItem(data []byte, atEOF bool) (advance int, token []byte, err error) {
 
 	if atEOF && len(data) == 0 {

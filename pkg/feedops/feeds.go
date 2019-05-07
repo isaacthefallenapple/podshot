@@ -1,3 +1,4 @@
+// Package feedops provides types and operations to deal with the .json file storing subscribed-to feeds.
 package feedops
 
 import (
@@ -11,8 +12,11 @@ var feeds feed
 var podcasts = feeds["podcasts"]
 var path = `..\..\myfeeds.json`
 
+// feed defines the structure for the .json file.
 type feed map[string][]podcast
-type podcast map[string]string
+
+// podcast defines the structure of a feed.
+type podcast map[string]string //TODO refactor to a struct{ name, rss string }
 
 func (f *feed) String() string {
 	b, err := json.MarshalIndent(f, "", "  ")
@@ -22,20 +26,17 @@ func (f *feed) String() string {
 	return string(b)
 }
 
-func init() {
-	if err := LoadJson(); err != nil {
-		panic(err)
-	}
-}
-
+// Feeds returns the global variable holding the feeds.
 func Feeds() *feed {
 	return &feeds
 }
 
+// SetPath sets the global path variable. path represents the path to the .json file.
 func SetPath(p string) {
 	path = filepath.Clean(p)
 }
 
+// Contains checks whether name is already in feeds.
 func Contains(name string) bool {
 	for _, p := range podcasts {
 		if p["name"] == name {
@@ -45,6 +46,8 @@ func Contains(name string) bool {
 	return false
 }
 
+// Add adds a new RSS feed. name specifies the name and feed the URL to the RSS feed.
+// Returns false if name is already in feeds. Returns true and Commit's error otherwise.
 func Add(name, feed string) (b bool, err error) {
 	if Contains(name) {
 		return
@@ -53,6 +56,8 @@ func Add(name, feed string) (b bool, err error) {
 	return true, Commit()
 }
 
+// Remove removes feed with name.
+// Returns false if name is not in feeds. Returns true and Commit's error otherwise.
 func Remove(name string) (b bool, err error) {
 	if !Contains(name) {
 		return
@@ -68,6 +73,9 @@ func Remove(name string) (b bool, err error) {
 	return
 }
 
+
+// Commit marshals feeds to json and writes it to a file. Reloads feeds with a call to LoadJson.
+// Returns any errors that arise during marshaling, writing, or reloading.
 func Commit() (err error) {
 	jsonData, err := json.Marshal(feeds)
 	if err != nil {
@@ -81,7 +89,9 @@ func Commit() (err error) {
 	return LoadJson()
 }
 
-func LoadJson() (err error) {
+// LoadJson reads the file specified in the global variable path and unmarshals it into feeds.
+// Returns any errors that arise while reading or unmarshaling the file.
+func LoadJson() (err error) { //TODO rename to LoadFeed or similar
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
 		fmt.Println(err)
